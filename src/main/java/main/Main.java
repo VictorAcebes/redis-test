@@ -2,11 +2,25 @@ package main;
 
 import redis.clients.jedis.Jedis;
 
+import java.io.FileInputStream;
+import java.util.Properties;
+
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        if (args.length == 0)
+            throw new IllegalArgumentException("You must provide conf.properties file path");
+        Properties props = new Properties();
+        props.load(new FileInputStream(args[0]));
+
+        System.setProperty("javax.net.ssl.keyStore", props.getProperty(" javax.net.ssl.keyStore"));
+        System.setProperty("javax.net.ssl.keyStorePassword", props.getProperty("javax.net.ssl.keyStorePassword"));
+        System.setProperty("javax.net.ssl.trustStore", props.getProperty("javax.net.ssl.trustStore"));
+        System.setProperty("javax.net.ssl.trustStorePassword", props.getProperty("javax.net.ssl.trustStorePassword"));
+
+
         // The "rediss" scheme instructs jedis to open a SSL/TLS connection.
-        Jedis jedis = new Jedis("rediss://clustercfg.redis-cache-naboo.70w7sj.euw1.cache.amazonaws.com:6379");
-        jedis.auth("q95cGujseOmyimoi");
+        Jedis jedis = new Jedis("rediss://" + props.getProperty("redis.host") + ":" + props.getProperty("redis.port"));
+        jedis.auth(props.getProperty("redis.password"));
         System.out.println(jedis.ping());
         jedis.close();
     }
